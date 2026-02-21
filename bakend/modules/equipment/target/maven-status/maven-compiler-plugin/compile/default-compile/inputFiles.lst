@@ -1,0 +1,7 @@
+/home/freeman/Dev/Personal/RAG-warehousing/code/bakend/modules/equipment/src/main/java/com/tobacco/warehouse/modules/equipment/service/impl/EquipmentServiceImpl.java
+/home/freeman/Dev/Personal/RAG-warehousing/code/bakend/modules/equipment/src/main/java/com/tobacco/warehouse/modules/equipment/entity/Equipment.java
+/home/freeman/Dev/Personal/RAG-warehousing/code/bakend/modules/equipment/src/main/java/com/tobacco/warehouse/modules/equipment/controller/EquipmentController.java
+/home/freeman/Dev/Personal/RAG-warehousing/code/bakend/modules/equipment/src/main/java/com/tobacco/warehouse/modules/equipment/mapper/EquipmentMapper.java
+/home/freeman/Dev/Personal/RAG-warehousing/code/bakend/modules/equipment/src/main/java/com/tobacco/warehouse/modules/equipment/service/EquipmentService.java
+/home/freeman/Dev/Personal/RAG-warehousing/code/bakend/modules/equipment/src/main/java/com/tobacco/warehouse/modules/equipment/entity/DeviceCategory.java
+/home/freeman/Dev/Personal/RAG-warehousing/code/bakend/modules/equipment/src/main/java/com/tobacco/warehouse/modules/equipment/entity/DeviceModel.java

@@ -1,0 +1,105 @@
+// 亮色主题变量
+$light-bg-color: #f5f7fa;
+$light-bg-color-secondary: #ffffff;
+$light-text-color: #303133;
+$light-text-color-secondary: #606266;
+$light-border-color: #dcdfe6;
+$light-primary-color: #409eff;
+$light-success-color: #67c23a;
+$light-warning-color: #e6a23c;
+$light-danger-color: #f56c6c;
+$light-info-color: #909399;
+
+// 暗色主题变量
+$dark-bg-color: #1a1a2e;
+$dark-bg-color-secondary: #16213e;
+$dark-text-color: #e4e7ed;
+$dark-text-color-secondary: #909399;
+$dark-border-color: #414243;
+$dark-primary-color: #409eff;
+$dark-success-color: #67c23a;
+$dark-warning-color: #e6a23c;
+$dark-danger-color: #f56c6c;
+$dark-info-color: #909399;
+
+// CSS变量 - 亮色主题（默认）
+:root {
+  --bg-color: #{$light-bg-color};
+  --bg-color-secondary: #{$light-bg-color-secondary};
+  --text-color: #{$light-text-color};
+  --text-color-secondary: #{$light-text-color-secondary};
+  --border-color: #{$light-border-color};
+  --primary-color: #{$light-primary-color};
+  --success-color: #{$light-success-color};
+  --warning-color: #{$light-warning-color};
+  --danger-color: #{$light-danger-color};
+  --info-color: #{$light-info-color};
+  
+  // 侧边栏
+  --sidebar-bg: #{$light-bg-color-secondary};
+  --sidebar-text-color: #{$light-text-color};
+  --sidebar-active-bg: #{$light-primary-color};
+  --sidebar-hover-bg: #ecf5ff;
+  
+  // 头部
+  --header-bg: #{$light-bg-color-secondary};
+  --header-text-color: #{$light-text-color};
+  --header-border-color: #{$light-border-color};
+  
+  // 卡片
+  --card-bg: #{$light-bg-color-secondary};
+  --card-border-color: #{$light-border-color};
+  
+  // 表格
+  --table-header-bg: #{$light-bg-color};
+  --table-row-hover-bg: #f5f7fa;
+  
+  // 3D仓库颜色
+  --warehouse-empty: #67c23a;
+  --warehouse-occupied: #409eff;
+  --warehouse-reserved: #e6a23c;
+  --warehouse-selected: #f56c6c;
+}
+
+// 暗色主题
+.dark {
+  --bg-color: #{$dark-bg-color};
+  --bg-color-secondary: #{$dark-bg-color-secondary};
+  --text-color: #{$dark-text-color};
+  --text-color-secondary: #{$dark-text-color-secondary};
+  --border-color: #{$dark-border-color};
+  --primary-color: #{$dark-primary-color};
+  --success-color: #{$dark-success-color};
+  --warning-color: #{$dark-warning-color};
+  --danger-color: #{$dark-danger-color};
+  --info-color: #{$dark-info-color};
+  
+  // 侧边栏
+  --sidebar-bg: #{$dark-bg-color-secondary};
+  --sidebar-text-color: #{$dark-text-color};
+  --sidebar-active-bg: #{$dark-primary-color};
+  --sidebar-hover-bg: #1f2d50;
+  
+  // 头部
+  --header-bg: #{$dark-bg-color-secondary};
+  --header-text-color: #{$dark-text-color};
+  --header-border-color: #{$dark-border-color};
+  
+  // 卡片
+  --card-bg: #{$dark-bg-color-secondary};
+  --card-border-color: #{$dark-border-color};
+  
+  // 表格
+  --table-header-bg: #{$dark-bg-color};
+  --table-row-hover-bg: #1f2d50;
+  
+  // 3D仓库颜色
+  --warehouse-empty: #67c23a;
+  --warehouse-occupied: #409eff;
+  --warehouse-reserved: #e6a23c;
+  --warehouse-selected: #f56c6c;
+}
+
+// 全局过渡
+$transition-duration: 0.3s;
+$transition-timing: ease;

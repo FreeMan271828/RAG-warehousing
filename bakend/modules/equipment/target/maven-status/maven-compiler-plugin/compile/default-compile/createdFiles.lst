@@ -1,0 +1,7 @@
+com/tobacco/warehouse/modules/equipment/controller/EquipmentController.class
+com/tobacco/warehouse/modules/equipment/service/impl/EquipmentServiceImpl.class
+com/tobacco/warehouse/modules/equipment/entity/Equipment.class
+com/tobacco/warehouse/modules/equipment/mapper/EquipmentMapper.class
+com/tobacco/warehouse/modules/equipment/entity/DeviceCategory.class
+com/tobacco/warehouse/modules/equipment/service/EquipmentService.class
+com/tobacco/warehouse/modules/equipment/entity/DeviceModel.class

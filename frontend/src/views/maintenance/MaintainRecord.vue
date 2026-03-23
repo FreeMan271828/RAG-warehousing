@@ -18,16 +18,46 @@
             <el-tag :type="row.status === 3 ? 'success' : 'warning'">{{ ['', '', '', '已完成'][row.status] || '处理中' }}</el-tag>
           </template>
         </el-table-column>
+        <el-table-column label="操作" width="120">
+          <template #default="{ row }">
+            <el-button type="primary" link @click="handleView(row)">详情</el-button>
+          </template>
+        </el-table-column>
       </el-table>
     </div>
   </div>
 </template>
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
+import { maintainRecordApi } from '@/api'
+
 const loading = ref(false)
-const tableData = ref([
-  { id: 1, recordCode: 'MTR-001', equipmentName: 'AGV-001', faultDesc: '电机故障', faultLevel: 2, status: 3 }
-])
+const tableData = ref([])
+
+const loadData = async () => {
+  loading.value = true
+  try {
+    const res = await maintainRecordApi.getMaintainPage({ pageNum: 1, pageSize: 100 })
+    if (res.data) {
+      tableData.value = res.data.records || []
+    }
+  } catch (error) {
+    console.error('加载数据失败:', error)
+    ElMessage.error('加载数据失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+// 查看详情
+const handleView = (row: any) => {
+  ElMessage.info(`查看维修记录: ${row.recordCode}`)
+}
+
+onMounted(() => {
+  loadData()
+})
 </script>
 <style lang="scss" scoped>
 .page-header { margin-bottom: 20px; .page-title { margin: 0; font-size: 20px; font-weight: 600; } }

@@ -97,6 +97,21 @@ public class WarehouseLocation extends BaseEntity {
     private BigDecimal maxWeight;
 
     /**
+     * 长度(cm)
+     */
+    private BigDecimal length;
+
+    /**
+     * 宽度(cm)
+     */
+    private BigDecimal width;
+
+    /**
+     * 高度(cm)
+     */
+    private BigDecimal height;
+
+    /**
      * 描述
      */
     private String description;

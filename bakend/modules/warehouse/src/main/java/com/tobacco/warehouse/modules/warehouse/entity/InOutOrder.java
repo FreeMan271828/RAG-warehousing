@@ -14,11 +14,15 @@ import java.time.LocalDateTime;
 /**
  * 出入库工单 实体类
  * 
+ * 状态流程：
+ * 新建(created) -> 待审核(pending_review) -> 审核通过/拒绝待入货(pending_in) -> 入库(in_progress) -> 
+ * 存储(stored) -> 出库(out_progress) -> 完成(completed)
+ * 
  * @author warehouse
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@TableName("warehouse_inout_order")
+@TableName("warehouse_order")
 public class InOutOrder extends BaseEntity {
 
     private static final long serialVersionUID = 1L;
@@ -34,19 +38,66 @@ public class InOutOrder extends BaseEntity {
     private String orderType;
 
     /**
-     * 工单状态：pending-待执行, in_progress-执行中, completed-已完成, cancelled-已取消
+     * 工单状态：created-新建, pending_review-待审核, rejected-已拒绝, 
+     * pending_in-待入货, in_progress-入库中, stored-存储中, 
+     * out_progress-出库中, completed-已完成, cancelled-已取消
      */
-    private String status;
+    private String orderStatus;
 
     /**
-     * 货位ID
+     * 审核人ID
      */
-    private Long locationId;
+    private Long reviewerId;
 
     /**
-     * 货位编码
+     * 审核人名称
      */
-    private String locationCode;
+    private String reviewerName;
+
+    /**
+     * 审核时间
+     */
+    private LocalDateTime reviewTime;
+
+    /**
+     * 审核备注
+     */
+    private String reviewRemark;
+
+    /**
+     * 优先级：1-低 2-中 3-高
+     */
+    private Integer priority;
+
+    /**
+     * 仓库编码
+     */
+    private String warehouseCode;
+
+    /**
+     * 仓库名称
+     */
+    private String warehouseName;
+
+    /**
+     * 源货位ID
+     */
+    private Long sourceLocationId;
+
+    /**
+     * 源货位编码
+     */
+    private String sourceLocationCode;
+
+    /**
+     * 目标货位ID
+     */
+    private Long targetLocationId;
+
+    /**
+     * 目标货位编码
+     */
+    private String targetLocationCode;
 
     /**
      * 托盘ID
@@ -69,54 +120,24 @@ public class InOutOrder extends BaseEntity {
     private String boxCode;
 
     /**
-     * 货物名称
+     * 物料编码
      */
-    private String cargoName;
+    private String itemCode;
 
     /**
-     * 货物编码
+     * 物料名称
      */
-    private String cargoCode;
+    private String itemName;
 
     /**
-     * 数量
+     * 物料数量
      */
-    private Integer quantity;
+    private BigDecimal itemQuantity;
 
     /**
-     * 单位
+     * 物料单位
      */
-    private String unit;
-
-    /**
-     * 重量(kg)
-     */
-    private BigDecimal weight;
-
-    /**
-     * 体积(立方米)
-     */
-    private BigDecimal volume;
-
-    /**
-     * 批次号
-     */
-    private String batchNo;
-
-    /**
-     * 供应商/客户
-     */
-    private String supplier;
-
-    /**
-     * 计划执行日期
-     */
-    private LocalDate planDate;
-
-    /**
-     * 实际执行时间
-     */
-    private LocalDateTime executeTime;
+    private String itemUnit;
 
     /**
      * 操作人ID
@@ -129,12 +150,87 @@ public class InOutOrder extends BaseEntity {
     private String operatorName;
 
     /**
-     * 来源/目的地
+     * 计划开始时间
      */
-    private String sourceDest;
+    private LocalDateTime planStartTime;
+
+    /**
+     * 计划结束时间
+     */
+    private LocalDateTime planEndTime;
+
+    /**
+     * 实际开始时间
+     */
+    private LocalDateTime actualStartTime;
+
+    /**
+     * 实际结束时间
+     */
+    private LocalDateTime actualEndTime;
 
     /**
      * 备注
      */
     private String remark;
+
+    /**
+     * 调拨类型：internal-内部调拨, external-外部调拨
+     */
+    private String transferType;
+
+    /**
+     * 源仓库编码
+     */
+    private String sourceWarehouseCode;
+
+    /**
+     * 源仓库名称
+     */
+    private String sourceWarehouseName;
+
+    /**
+     * 目标仓库编码
+     */
+    private String targetWarehouseCode;
+
+    /**
+     * 目标仓库名称
+     */
+    private String targetWarehouseName;
+
+    /**
+     * 批次号（用于追溯）
+     */
+    private String batchNo;
+
+    /**
+     * 承运人
+     */
+    private String transporter;
+
+    /**
+     * 车牌号
+     */
+    private String vehicleNo;
+
+    /**
+     * 实际入库/出库数量
+     */
+    private BigDecimal actualQuantity;
+
+    /**
+     * 差异数量
+     */
+    private BigDecimal differenceQuantity;
+
+    /**
+     * 操作备注
+     */
+    private String operationRemark;
+
+    /**
+     * 状态变更历史(JSON格式)
+     */
+    private String statusHistory;
 }

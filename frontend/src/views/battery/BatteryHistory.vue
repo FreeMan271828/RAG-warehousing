@@ -21,12 +21,31 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
+import { chargeHistoryApi } from '@/api'
+
 const loading = ref(false)
-const tableData = ref([
-  { id: 1, batteryCode: 'BT-001', chargeStartTime: '2024-01-15 10:00:00', chargeEndTime: '2024-01-15 12:30:00', duration: 150, chargedCapacity: 8.5, isCompleted: true },
-  { id: 2, batteryCode: 'BT-002', chargeStartTime: '2024-01-14 14:00:00', chargeEndTime: '2024-01-14 16:30:00', duration: 150, chargedCapacity: 9.2, isCompleted: true }
-])
+const tableData = ref([])
+
+const loadData = async () => {
+  loading.value = true
+  try {
+    const res = await chargeHistoryApi.getHistoryPage({ pageNum: 1, pageSize: 100 })
+    if (res.data) {
+      tableData.value = res.data.records || []
+    }
+  } catch (error) {
+    console.error('加载数据失败:', error)
+    ElMessage.error('加载数据失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  loadData()
+})
 </script>
 
 <style lang="scss" scoped>

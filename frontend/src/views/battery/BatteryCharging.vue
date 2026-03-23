@@ -22,12 +22,59 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
+import { ElMessage } from 'element-plus'
+import { chargingNowApi } from '@/api'
+
 const loading = ref(false)
-const tableData = ref([
-  { id: 1, batteryCode: 'BT-001', chargeStartTime: '2024-01-15 10:00:00', voltage: 48.5, current: 10.5, temperature: 28, soc: 65 },
-  { id: 2, batteryCode: 'BT-002', chargeStartTime: '2024-01-15 11:00:00', voltage: 50.2, current: 8.2, temperature: 25, soc: 80 }
-])
+const tableData = ref([])
+let autoRefreshTimer: ReturnType<typeof setInterval> | null = null
+
+// 启动自动刷新
+const startAutoRefresh = () => {
+  if (autoRefreshTimer) {
+    clearInterval(autoRefreshTimer)
+  }
+  // 每2秒自动刷新一次（充电数据变化快）
+  autoRefreshTimer = setInterval(() => {
+    loadData(false)
+  }, 2000)
+}
+
+// 停止自动刷新
+const stopAutoRefresh = () => {
+  if (autoRefreshTimer) {
+    clearInterval(autoRefreshTimer)
+    autoRefreshTimer = null
+  }
+}
+
+const loadData = async (showLoading: boolean = true) => {
+  if (showLoading) {
+    loading.value = true
+  }
+  try {
+    const res = await chargingNowApi.getChargingList()
+    if (res.data) {
+      tableData.value = res.data || []
+    }
+  } catch (error) {
+    console.error('加载数据失败:', error)
+  } finally {
+    if (showLoading) {
+      loading.value = false
+    }
+  }
+}
+
+onMounted(() => {
+  loadData()
+  startAutoRefresh()
+})
+
+onUnmounted(() => {
+  stopAutoRefresh()
+})
 </script>
 
 <style lang="scss" scoped>

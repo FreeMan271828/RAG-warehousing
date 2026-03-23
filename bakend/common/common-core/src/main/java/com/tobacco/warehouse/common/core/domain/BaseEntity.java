@@ -42,19 +42,18 @@ public class BaseEntity implements Serializable {
     /**
      * 创建人ID
      */
-    @TableField(fill = FieldFill.INSERT)
+    @TableField(fill = FieldFill.INSERT, exist = false)
     private Long createBy;
 
     /**
      * 更新人ID
      */
-    @TableField(fill = FieldFill.INSERT_UPDATE)
+    @TableField(fill = FieldFill.INSERT_UPDATE, exist = false)
     private Long updateBy;
 
     /**
      * 删除标记 0-正常 1-删除
      */
-    @TableLogic
     @TableField(fill = FieldFill.INSERT)
     private Integer deleted;
 }

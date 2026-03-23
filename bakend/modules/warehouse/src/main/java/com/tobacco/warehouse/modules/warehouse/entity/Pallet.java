@@ -8,7 +8,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 
 /**
  * 托盘 实体类
@@ -33,14 +32,14 @@ public class Pallet extends BaseEntity {
     private String palletName;
 
     /**
-     * 托盘类型
-     */
-    private String palletType;
-
-    /**
      * 规格
      */
     private String specification;
+
+    /**
+     * 托盘类型
+     */
+    private String palletType;
 
     /**
      * 长度(cm)
@@ -63,9 +62,9 @@ public class Pallet extends BaseEntity {
     private BigDecimal maxWeight;
 
     /**
-     * 当前状态：empty-空, in_use-使用中, maintenance-维保中, retired-已报废
+     * 材质
      */
-    private String currentStatus;
+    private String material;
 
     /**
      * 所在货位ID
@@ -76,16 +75,6 @@ public class Pallet extends BaseEntity {
      * 所在货位编码
      */
     private String locationCode;
-
-    /**
-     * 采购日期
-     */
-    private LocalDate purchaseDate;
-
-    /**
-     * 使用年限
-     */
-    private Integer usefulLife;
 
     /**
      * 状态：0-禁用 1-启用

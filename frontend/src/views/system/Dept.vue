@@ -27,15 +27,31 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
+import { deptApi } from '@/api'
 
 const loading = ref(false)
-const tableData = ref([
-  { id: 1, deptName: '延安烟厂', parentName: '-', leaderName: '张总', phone: '123456789', sortOrder: 1, status: 1 },
-  { id: 2, deptName: '设备管理部', parentName: '延安烟厂', leaderName: '李经理', phone: '123456789', sortOrder: 1, status: 1 },
-  { id: 3, deptName: '运维部', parentName: '延安烟厂', leaderName: '王经理', phone: '123456789', sortOrder: 2, status: 1 },
-  { id: 4, deptName: '仓储部', parentName: '延安烟厂', leaderName: '赵经理', phone: '123456789', sortOrder: 3, status: 1 }
-])
+const tableData = ref([])
+
+const loadData = async () => {
+  loading.value = true
+  try {
+    const res = await deptApi.getDeptPage({ pageNum: 1, pageSize: 100 })
+    if (res.data) {
+      tableData.value = res.data.records || []
+    }
+  } catch (error) {
+    console.error('加载数据失败:', error)
+    ElMessage.error('加载数据失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  loadData()
+})
 </script>
 
 <style lang="scss" scoped>

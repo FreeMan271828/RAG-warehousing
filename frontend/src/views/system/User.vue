@@ -25,12 +25,31 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
+import { userApi } from '@/api'
+
 const loading = ref(false)
-const tableData = ref([
-  { id: 1, username: 'admin', realName: '管理员', deptName: '设备管理部', post: '系统管理员', status: 1 },
-  { id: 2, username: 'user1', realName: '张三', deptName: '运维部', post: '运维工程师', status: 1 }
-])
+const tableData = ref([])
+
+const loadData = async () => {
+  loading.value = true
+  try {
+    const res = await userApi.getUserPage({ pageNum: 1, pageSize: 100 })
+    if (res.data) {
+      tableData.value = res.data.records || []
+    }
+  } catch (error) {
+    console.error('加载数据失败:', error)
+    ElMessage.error('加载数据失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  loadData()
+})
 </script>
 <style lang="scss" scoped>
 .page-header { margin-bottom: 20px; .page-title { margin: 0; font-size: 20px; font-weight: 600; } }

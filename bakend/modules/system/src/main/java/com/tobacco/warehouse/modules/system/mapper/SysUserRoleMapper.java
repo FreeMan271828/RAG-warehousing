@@ -25,6 +25,6 @@ public interface SysUserRoleMapper extends BaseMapper<SysUserRole> {
     /**
      * 根据角色ID查询用户ID列表
      */
-    @Select("SELECT user_id FROM sys_role_permission WHERE role_id = #{roleId} AND deleted = 0")
+    @Select("SELECT user_id FROM sys_user_role WHERE role_id = #{roleId} AND deleted = 0")
     List<Long> selectUserIdsByRoleId(@Param("roleId") Long roleId);
 }

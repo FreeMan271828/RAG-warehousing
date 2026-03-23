@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import type { Component } from 'vue'
+import { ElMessage } from 'element-plus'
 
 // 布局组件
 import MainLayout from '@/layout/MainLayout.vue'
@@ -11,6 +12,7 @@ const WarehouseLocation = () => import('@/views/warehouse/WarehouseLocation.vue'
 const WarehousePallet = () => import('@/views/warehouse/WarehousePallet.vue')
 const WarehouseBox = () => import('@/views/warehouse/WarehouseBox.vue')
 const WarehouseOrder = () => import('@/views/warehouse/WarehouseOrder.vue')
+const AgvManagement = () => import('@/views/warehouse/AgvManagement.vue')
 const DeviceCategory = () => import('@/views/device/DeviceCategory.vue')
 const DeviceModel = () => import('@/views/device/DeviceModel.vue')
 const DeviceEquipment = () => import('@/views/device/DeviceEquipment.vue')
@@ -29,6 +31,7 @@ const KnowledgeVideo = () => import('@/views/knowledge/Video.vue')
 const SystemUser = () => import('@/views/system/User.vue')
 const SystemRole = () => import('@/views/system/Role.vue')
 const SystemDept = () => import('@/views/system/Dept.vue')
+const SystemProfile = () => import('@/views/system/Profile.vue')
 const Login = () => import('@/views/login/Login.vue')
 
 export interface MenuRouteRecord extends RouteRecordRaw {
@@ -39,6 +42,9 @@ export interface MenuRouteRecord extends RouteRecordRaw {
   }
   children?: MenuRouteRecord[]
 }
+
+// 路由白名单，不需要登录即可访问
+const whiteList = ['/login', '/login/index']
 
 const routes: MenuRouteRecord[] = [
   {
@@ -92,6 +98,12 @@ const routes: MenuRouteRecord[] = [
             name: 'WarehouseOrder',
             component: WarehouseOrder,
             meta: { title: '出入库工单', icon: 'Document' }
+          },
+          {
+            path: 'agv',
+            name: 'AgvManagement',
+            component: AgvManagement,
+            meta: { title: 'AGV小车', icon: 'Van' }
           }
         ]
       },
@@ -110,7 +122,7 @@ const routes: MenuRouteRecord[] = [
             path: 'model',
             name: 'DeviceModel',
             component: DeviceModel,
-            meta: { title: '设备型号', icon: 'Cpu }
+            meta: { title: '设备型号', icon: 'Cpu' }
           },
           {
             path: 'equipment',
@@ -235,6 +247,12 @@ const routes: MenuRouteRecord[] = [
             name: 'SystemDept',
             component: SystemDept,
             meta: { title: '部门管理', icon: 'OfficeBuilding' }
+          },
+          {
+            path: 'profile',
+            name: 'SystemProfile',
+            component: SystemProfile,
+            meta: { title: '个人中心', icon: 'User' }
           }
         ]
       }
@@ -245,6 +263,21 @@ const routes: MenuRouteRecord[] = [
 const router = createRouter({
   history: createWebHistory(),
   routes
+})
+
+// 路由守卫 - 检查是否需要登录
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem('token')
+  
+  // 如果要访问的页面不在白名单中，且没有token，则跳转到登录页
+  if (!whiteList.includes(to.path) && !token) {
+    next('/login')
+  } else if (to.path === '/login' && token) {
+    // 已登录状态下访问登录页，跳转到首页
+    next('/dashboard')
+  } else {
+    next()
+  }
 })
 
 export default router

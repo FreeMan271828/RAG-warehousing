@@ -71,10 +71,10 @@
         <el-table-column prop="location" label="位置" />
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
-            <el-button type="primary" link @click="handleEdit(row)">编辑</el-button>
-            <el-button type="success" link @click="handleView(row)">详情</el-button>
-            <el-button type="warning" link @click="handleCharge(row)">充电</el-button>
-            <el-button type="danger" link @click="handleDelete(row)">删除</el-button>
+            <el-button type="warning" link @click="handleEdit(row)" v-if="canEditData">编辑</el-button>
+            <el-button type="primary" link @click="handleView(row)" v-if="!canEditData">详情</el-button>
+            <el-button type="success" link @click="handleCharge(row)">充电</el-button>
+            <el-button type="danger" link @click="handleDelete(row)" v-if="canDeleteData">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -171,8 +171,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox, FormInstance, FormRules } from 'element-plus'
+import { batteryApi } from '@/api'
+import { hasPermission } from '@/utils/permission'
+
+// 权限编码
+const PERMISSION_EDIT = 'battery:edit'
+const PERMISSION_DELETE = 'battery:delete'
+
+// 是否有编辑权限
+const canEditData = computed(() => hasPermission(PERMISSION_EDIT))
+// 是否有删除权限
+const canDeleteData = computed(() => hasPermission(PERMISSION_DELETE))
 
 const searchForm = reactive({
   batteryCode: '',
@@ -187,56 +198,7 @@ const pagination = reactive({
 })
 
 const loading = ref(false)
-const tableData = ref([
-  {
-    id: 1,
-    batteryCode: 'BT-001',
-    batteryName: 'AGV电池组1',
-    batteryType: '磷酸铁锂',
-    batteryModel: '48V-100Ah',
-    manufacturer: '宁德时代',
-    ratedCapacity: 100,
-    ratedVoltage: 48,
-    healthStatus: 95,
-    status: 1,
-    location: 'AGV-001',
-    totalChargeTimes: 150,
-    totalUsageHours: 1200,
-    remark: ''
-  },
-  {
-    id: 2,
-    batteryCode: 'BT-002',
-    batteryName: 'AGV电池组2',
-    batteryType: '磷酸铁锂',
-    batteryModel: '48V-100Ah',
-    manufacturer: '宁德时代',
-    ratedCapacity: 100,
-    ratedVoltage: 48,
-    healthStatus: 88,
-    status: 2,
-    location: 'AGV-002',
-    totalChargeTimes: 200,
-    totalUsageHours: 1800,
-    remark: ''
-  },
-  {
-    id: 3,
-    batteryCode: 'BT-003',
-    batteryName: '堆垛机电池',
-    batteryType: '三元锂',
-    batteryModel: '80V-200Ah',
-    manufacturer: '比亚迪',
-    ratedCapacity: 200,
-    ratedVoltage: 80,
-    healthStatus: 92,
-    status: 3,
-    location: '堆垛机A',
-    totalChargeTimes: 100,
-    totalUsageHours: 800,
-    remark: ''
-  }
-])
+const tableData = ref([])
 
 const selectedRows = ref([])
 const dialogVisible = ref(false)
@@ -299,12 +261,25 @@ const handleReset = () => {
   handleSearch()
 }
 
-const loadData = () => {
+const loadData = async () => {
   loading.value = true
-  setTimeout(() => {
-    pagination.total = 100
+  try {
+    const params = {
+      pageNum: pagination.pageNum,
+      pageSize: pagination.pageSize,
+      ...searchForm
+    }
+    const res = await batteryApi.getBatteryPage(params)
+    if (res.data) {
+      tableData.value = res.data.records || []
+      pagination.total = res.data.total || 0
+    }
+  } catch (error) {
+    console.error('加载数据失败:', error)
+    ElMessage.error('加载数据失败')
+  } finally {
     loading.value = false
-  }, 500)
+  }
 }
 
 const handleAdd = () => {

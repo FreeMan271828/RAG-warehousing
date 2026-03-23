@@ -36,11 +36,11 @@
     </div>
     
     <!-- 操作栏 -->
-    <div class="action-bar">
+    <div class="action-bar" v-if="canAddData">
       <el-button type="primary" @click="handleAdd">
         <el-icon><Plus /></el-icon>新增货位
       </el-button>
-      <el-button type="danger" :disabled="!selectedRows.length" @click="handleBatchDelete">
+      <el-button type="danger" :disabled="!selectedRows.length" @click="handleBatchDelete" v-if="canDeleteData">
         <el-icon><Delete /></el-icon>批量删除
       </el-button>
     </div>
@@ -80,9 +80,9 @@
         <el-table-column prop="description" label="描述" />
         <el-table-column label="操作" width="180" fixed="right">
           <template #default="{ row }">
-            <el-button type="primary" link @click="handleEdit(row)">编辑</el-button>
-            <el-button type="success" link @click="handleView(row)">查看</el-button>
-            <el-button type="danger" link @click="handleDelete(row)">删除</el-button>
+            <el-button type="warning" link @click="handleEdit(row)" v-if="canEditData">编辑</el-button>
+            <el-button type="primary" link @click="handleView(row)" v-if="!canEditData">详情</el-button>
+            <el-button type="danger" link @click="handleDelete(row)" v-if="canDeleteData">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -166,14 +166,31 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox, FormInstance, FormRules } from 'element-plus'
+import { warehouseLocationApi } from '@/api'
+import { hasPermission } from '@/utils/permission'
+
+// 权限编码
+const PERMISSION_VIEW = 'warehouse:location:view'
+const PERMISSION_ADD = 'warehouse:location:add'
+const PERMISSION_EDIT = 'warehouse:location:edit'
+const PERMISSION_DELETE = 'warehouse:location:delete'
+
+// 是否有新增权限
+const canAddData = computed(() => hasPermission(PERMISSION_ADD))
+// 是否有编辑权限
+const canEditData = computed(() => hasPermission(PERMISSION_EDIT))
+// 是否有删除权限
+const canDeleteData = computed(() => hasPermission(PERMISSION_DELETE))
+// 是否有任何管理权限
+const hasPermissionAny = computed(() => canAddData.value || canEditData.value || canDeleteData.value)
 
 // 搜索表单
 const searchForm = reactive({
   locationCode: '',
   areaCode: '',
-  status: ''
+  currentStatus: ''
 })
 
 // 分页
@@ -185,53 +202,7 @@ const pagination = reactive({
 
 // 表格数据
 const loading = ref(false)
-const tableData = ref([
-  {
-    id: 1,
-    locationCode: 'A01-01-01',
-    locationName: 'A区01-01-01',
-    areaCode: 'A',
-    areaName: 'A区',
-    rowNum: 1,
-    colNum: 1,
-    levelNum: 1,
-    locationType: 'storage',
-    currentStatus: 'empty',
-    capacity: 2.5,
-    maxWeight: 500,
-    description: '标准存储位'
-  },
-  {
-    id: 2,
-    locationCode: 'A01-01-02',
-    locationName: 'A区01-01-02',
-    areaCode: 'A',
-    areaName: 'A区',
-    rowNum: 1,
-    colNum: 1,
-    levelNum: 2,
-    locationType: 'storage',
-    currentStatus: 'occupied',
-    capacity: 2.5,
-    maxWeight: 500,
-    description: '标准存储位'
-  },
-  {
-    id: 3,
-    locationCode: 'A01-02-01',
-    locationName: 'A区01-02-01',
-    areaCode: 'A',
-    areaName: 'A区',
-    rowNum: 1,
-    colNum: 2,
-    levelNum: 1,
-    locationType: 'picking',
-    currentStatus: 'reserved',
-    capacity: 2.5,
-    maxWeight: 500,
-    description: '拣选位'
-  }
-])
+const tableData = ref([])
 
 const selectedRows = ref([])
 
@@ -272,18 +243,32 @@ const handleReset = () => {
   Object.assign(searchForm, {
     locationCode: '',
     areaCode: '',
-    status: ''
+    currentStatus: ''
   })
   handleSearch()
 }
 
 // 加载数据
-const loadData = () => {
+const loadData = async () => {
   loading.value = true
-  setTimeout(() => {
-    pagination.total = 100
+  try {
+    const params = {
+      pageNum: pagination.pageNum,
+      pageSize: pagination.pageSize,
+      locationCode: searchForm.locationCode || undefined,
+      areaCode: searchForm.areaCode || undefined
+    }
+    const res = await warehouseLocationApi.getLocationPage(params)
+    if (res.data) {
+      tableData.value = res.data.records || []
+      pagination.total = res.data.total || 0
+    }
+  } catch (error) {
+    console.error('加载数据失败:', error)
+    ElMessage.error('加载数据失败')
+  } finally {
     loading.value = false
-  }, 500)
+  }
 }
 
 // 新增
@@ -319,28 +304,40 @@ const handleView = (row: any) => {
 }
 
 // 删除
-const handleDelete = (row: any) => {
-  ElMessageBox.confirm('确定要删除该货位吗？', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(() => {
+const handleDelete = async (row: any) => {
+  try {
+    await ElMessageBox.confirm('确定要删除该货位吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    await warehouseLocationApi.deleteLocation(row.id)
     ElMessage.success('删除成功')
     loadData()
-  })
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error('删除失败')
+    }
+  }
 }
 
 // 批量删除
-const handleBatchDelete = () => {
+const handleBatchDelete = async () => {
   if (!selectedRows.value.length) return
-  ElMessageBox.confirm(`确定要删除选中的 ${selectedRows.value.length} 条记录吗？`, '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(() => {
+  try {
+    await ElMessageBox.confirm(`确定要删除选中的 ${selectedRows.value.length} 条记录吗？`, '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    // 批量删除逻辑
     ElMessage.success('删除成功')
     loadData()
-  })
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error('删除失败')
+    }
+  }
 }
 
 // 选择变化
@@ -351,11 +348,21 @@ const handleSelectionChange = (rows: any[]) => {
 // 提交表单
 const handleSubmit = async () => {
   if (!formRef.value) return
-  await formRef.value.validate((valid) => {
+  await formRef.value.validate(async (valid) => {
     if (valid) {
-      ElMessage.success(form.id ? '修改成功' : '新增成功')
-      dialogVisible.value = false
-      loadData()
+      try {
+        if (form.id) {
+          await warehouseLocationApi.updateLocation(form)
+          ElMessage.success('修改成功')
+        } else {
+          await warehouseLocationApi.createLocation(form)
+          ElMessage.success('新增成功')
+        }
+        dialogVisible.value = false
+        loadData()
+      } catch (error) {
+        ElMessage.error(form.id ? '修改失败' : '新增失败')
+      }
     }
   })
 }

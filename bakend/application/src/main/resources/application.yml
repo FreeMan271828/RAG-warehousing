@@ -86,18 +86,6 @@ logging:
   pattern:
     console: '%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{50} - %msg%n'
 
-# MQTT配置
-mqtt:
-  url: tcp://127.0.0.1:1883
-  username: admin
-  password: public
-  client-id: warehouse-backend
-  completion-timeout: 5000
-  topics:
-    - warehouse/#
-    - battery/#
-    - equipment/#
-
 # RAG智能问答配置
 rag:
   api:

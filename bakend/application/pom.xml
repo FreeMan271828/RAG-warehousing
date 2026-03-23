@@ -58,17 +58,17 @@
         </dependency>
         <dependency>
             <groupId>com.tobacco.warehouse</groupId>
-            <artifactId>common-mqtt</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.tobacco.warehouse</groupId>
             <artifactId>common-websocket</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.tobacco.warehouse</groupId>
             <artifactId>modules-rag</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.tobacco.warehouse</groupId>
+            <artifactId>warehouse</artifactId>
             <version>${project.version}</version>
         </dependency>
 

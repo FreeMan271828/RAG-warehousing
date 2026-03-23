@@ -18,7 +18,7 @@
         >
           <template v-for="route in menuData" :key="route.path">
             <!-- 有子菜单的 -->
-            <el-sub-menu v-if="route.children && route.children.length > 0" :index="route.path">
+            <el-sub-menu v-if="route.children && route.children.length > 0" :index="'/' + route.path">
               <template #title>
                 <el-icon v-if="route.meta?.icon"><component :is="route.meta.icon" /></el-icon>
                 <span>{{ route.meta?.title }}</span>
@@ -34,7 +34,7 @@
             </el-sub-menu>
             
             <!-- 无子菜单的 -->
-            <el-menu-item v-else :index="route.path">
+            <el-menu-item v-else :index="'/' + route.path">
               <el-icon v-if="route.meta?.icon"><component :is="route.meta.icon" /></el-icon>
               <span>{{ route.meta?.title }}</span>
             </el-menu-item>
@@ -89,7 +89,7 @@
           <el-dropdown @command="handleCommand">
             <div class="user-info">
               <el-avatar :size="32" :icon="User" />
-              <span class="username">管理员</span>
+              <span class="username">{{ username }}</span>
             </div>
             <template #dropdown>
               <el-dropdown-menu>
@@ -120,10 +120,18 @@ import { useRoute, useRouter } from 'vue-router'
 import { useThemeStore } from '@/stores/theme'
 import { menuRoutes } from '@/router'
 import { ElMessage } from 'element-plus'
+import { User } from '@element-plus/icons-vue'
+import { getCurrentUserInfo } from '@/utils/permission'
 
 const route = useRoute()
 const router = useRouter()
 const themeStore = useThemeStore()
+
+// 获取用户信息
+const userInfo = computed(() => getCurrentUserInfo())
+
+// 用户名
+const username = computed(() => userInfo.value?.realName || userInfo.value?.username || '管理员')
 
 // 折叠状态
 const isCollapsed = ref(false)
@@ -143,7 +151,23 @@ const menuActiveTextColor = computed(() => isDark.value ? '#409eff' : '#409eff')
 const menuData = menuRoutes
 
 // 当前激活菜单
-const activeMenu = computed(() => route.path)
+const activeMenu = computed(() => {
+  const path = route.path
+  // 精确匹配或前缀匹配
+  if (path === '/dashboard') return '/dashboard'
+  // 对于子路由，处理 /warehouse/location 这类路由
+  for (const item of menuData) {
+    if (item.children) {
+      for (const child of item.children) {
+        const fullPath = '/' + item.path + '/' + child.path
+        if (path === fullPath || path.startsWith(fullPath + '/')) {
+          return fullPath
+        }
+      }
+    }
+  }
+  return path
+})
 
 // 当前路由信息
 const currentRoute = computed(() => {
@@ -151,11 +175,16 @@ const currentRoute = computed(() => {
   for (const item of menuData) {
     if (item.children) {
       for (const child of item.children) {
-        if (path.includes(child.path || '')) {
+        const fullPath = '/' + item.path + '/' + child.path
+        if (path === fullPath || path.startsWith(fullPath + '/')) {
           return { ...child, parent: item }
         }
       }
     }
+  }
+  // 顶级路由
+  if (path === '/dashboard') {
+    return { meta: { title: '仪表盘' } }
   }
   return route
 })
@@ -193,7 +222,7 @@ const handleCommand = (command: string) => {
     ElMessage.success('已退出登录')
     router.push('/login')
   } else if (command === 'profile') {
-    ElMessage.info('个人中心开发中')
+    router.push('/system/profile')
   } else if (command === 'settings') {
     ElMessage.info('设置开发中')
   }

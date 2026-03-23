@@ -8,7 +8,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 
 /**
  * 箱子 实体类
@@ -58,14 +57,19 @@ public class Box extends BaseEntity {
     private BigDecimal height;
 
     /**
-     * 重量(kg)
-     */
-    private BigDecimal weight;
-
-    /**
      * 最大承重(kg)
      */
     private BigDecimal maxWeight;
+
+    /**
+     * 材质
+     */
+    private String material;
+
+    /**
+     * 颜色
+     */
+    private String color;
 
     /**
      * 所属托盘ID
@@ -73,34 +77,14 @@ public class Box extends BaseEntity {
     private Long palletId;
 
     /**
-     * 所属托盘编码
+     * 货位ID
      */
-    private String palletCode;
+    private Long locationId;
 
     /**
-     * 当前状态：empty-空, loaded-有货, in_transit-运输中
+     * 货位编码
      */
-    private String currentStatus;
-
-    /**
-     * 货物名称
-     */
-    private String cargoName;
-
-    /**
-     * 货物数量
-     */
-    private Integer cargoQuantity;
-
-    /**
-     * 货物单位
-     */
-    private String cargoUnit;
-
-    /**
-     * 采购日期
-     */
-    private LocalDate purchaseDate;
+    private String locationCode;
 
     /**
      * 状态：0-禁用 1-启用

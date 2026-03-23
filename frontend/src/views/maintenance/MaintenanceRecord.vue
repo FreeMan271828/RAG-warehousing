@@ -13,16 +13,46 @@
             <el-tag type="success">合格</el-tag>
           </template>
         </el-table-column>
+        <el-table-column label="操作" width="120">
+          <template #default="{ row }">
+            <el-button type="primary" link @click="handleView(row)">详情</el-button>
+          </template>
+        </el-table-column>
       </el-table>
     </div>
   </div>
 </template>
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
+import { maintenanceRecordApi } from '@/api'
+
 const loading = ref(false)
-const tableData = ref([
-  { id: 1, recordCode: 'MR-001', equipmentName: '堆垛机A', executeDate: '2024-01-15', result: '合格' }
-])
+const tableData = ref([])
+
+const loadData = async () => {
+  loading.value = true
+  try {
+    const res = await maintenanceRecordApi.getRecordPage({ pageNum: 1, pageSize: 100 })
+    if (res.data) {
+      tableData.value = res.data.records || []
+    }
+  } catch (error) {
+    console.error('加载数据失败:', error)
+    ElMessage.error('加载数据失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+// 查看详情
+const handleView = (row: any) => {
+  ElMessage.info(`查看保养记录: ${row.recordCode}`)
+}
+
+onMounted(() => {
+  loadData()
+})
 </script>
 <style lang="scss" scoped>
 .page-header { margin-bottom: 20px; .page-title { margin: 0; font-size: 20px; font-weight: 600; } }

@@ -9,24 +9,129 @@
         <el-table-column prop="elementName" label="零件名称" width="180" />
         <el-table-column prop="specification" label="规格" />
         <el-table-column prop="stockQuantity" label="库存" width="100" />
-        <el-table-column label="操作" width="180">
-          <template #default>
-            <el-button type="primary" link>编辑</el-button>
-            <el-button type="danger" link>删除</el-button>
+        <el-table-column label="操作" width="200">
+          <template #default="{ row }">
+            <el-button type="warning" link @click="handleEdit(row)" v-if="canEditData">编辑</el-button>
+            <el-button type="primary" link @click="handleView(row)" v-if="!canEditData">详情</el-button>
+            <el-button type="danger" link @click="handleDelete(row)" v-if="canDeleteData">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
     </div>
+
+    <!-- 详情/编辑弹窗 -->
+    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="500px">
+      <el-form :model="formData" label-width="100px">
+        <el-form-item label="零件编码">
+          <el-input v-model="formData.elementCode" :disabled="!canEditData" />
+        </el-form-item>
+        <el-form-item label="零件名称">
+          <el-input v-model="formData.elementName" :disabled="!canEditData" />
+        </el-form-item>
+        <el-form-item label="规格">
+          <el-input v-model="formData.specification" :disabled="!canEditData" />
+        </el-form-item>
+        <el-form-item label="库存" v-if="canEditData">
+          <el-input-number v-model="formData.stockQuantity" :min="0" style="width: 100%" />
+        </el-form-item>
+        <el-form-item label="库存" v-else>
+          <span>{{ formData.stockQuantity }}</span>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="dialogVisible = false">关闭</el-button>
+        <el-button type="primary" @click="handleSubmit" v-if="canEditData">保存</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { elementApi } from '@/api'
+import { hasPermission } from '@/utils/permission'
+
+// 权限编码
+const PERMISSION_EDIT = 'device:element:edit'
+const PERMISSION_DELETE = 'device:element:delete'
+
+// 是否有编辑权限
+const canEditData = computed(() => hasPermission(PERMISSION_EDIT))
+// 是否有删除权限
+const canDeleteData = computed(() => hasPermission(PERMISSION_DELETE))
+
 const loading = ref(false)
-const tableData = ref([
-  { id: 1, elementCode: 'ELM-001', elementName: '电机', specification: 'DC24V', stockQuantity: 10 },
-  { id: 2, elementCode: 'ELM-002', elementName: '传感器', specification: '红外', stockQuantity: 20 }
-])
+const tableData = ref([])
+
+// 弹窗相关
+const dialogVisible = ref(false)
+const dialogTitle = ref('零件详情')
+const formData = ref<any>({})
+
+const loadData = async () => {
+  loading.value = true
+  try {
+    const res = await elementApi.getElementPage({ pageNum: 1, pageSize: 100 })
+    if (res.data) {
+      tableData.value = res.data.records || []
+    }
+  } catch (error) {
+    console.error('加载数据失败:', error)
+    ElMessage.error('加载数据失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+// 查看详情
+const handleView = (row: any) => {
+  formData.value = { ...row }
+  dialogTitle.value = '零件详情'
+  dialogVisible.value = true
+}
+
+// 编辑零件
+const handleEdit = (row: any) => {
+  formData.value = { ...row }
+  dialogTitle.value = '编辑零件'
+  dialogVisible.value = true
+}
+
+// 提交保存
+const handleSubmit = async () => {
+  try {
+    await elementApi.updateElement(formData.value)
+    ElMessage.success('保存成功')
+    dialogVisible.value = false
+    loadData()
+  } catch (error) {
+    ElMessage.error('保存失败')
+  }
+}
+
+// 删除零件
+const handleDelete = async (row: any) => {
+  try {
+    await ElMessageBox.confirm('确定要删除该零件吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    
+    await elementApi.deleteElement(row.id)
+    ElMessage.success('删除成功')
+    loadData()
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      ElMessage.error('删除失败')
+    }
+  }
+}
+
+onMounted(() => {
+  loadData()
+})
 </script>
 
 <style lang="scss" scoped>

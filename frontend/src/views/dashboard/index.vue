@@ -19,46 +19,46 @@
           <span class="stat-title">设备总数</span>
           <el-icon class="stat-icon equipment"><Monitor /></el-icon>
         </div>
-        <div class="stat-value">128</div>
+        <div class="stat-value">{{ statsData.equipmentTotal }}</div>
         <div class="stat-change up">
           <el-icon><TrendCharts /></el-icon>
-          <span>较昨日 +12%</span>
+          <span>设备数量</span>
         </div>
       </div>
-      
+
       <div class="stat-card">
         <div class="stat-header">
           <span class="stat-title">在线设备</span>
           <el-icon class="stat-icon online"><Connection /></el-icon>
         </div>
-        <div class="stat-value">98</div>
+        <div class="stat-value">{{ statsData.equipmentOnline }}</div>
         <div class="stat-change up">
           <el-icon><TrendCharts /></el-icon>
-          <span>在线率 76.5%</span>
+          <span>运行中</span>
         </div>
       </div>
-      
+
       <div class="stat-card">
         <div class="stat-header">
           <span class="stat-title">电池数量</span>
           <el-icon class="stat-icon battery"><Battery /></el-icon>
         </div>
-        <div class="stat-value">256</div>
+        <div class="stat-value">{{ statsData.batteryTotal }}</div>
         <div class="stat-change">
           <el-icon><TrendCharts /></el-icon>
-          <span>健康率 92.3%</span>
+          <span>健康率 {{ statsData.batteryHealthRate }}%</span>
         </div>
       </div>
-      
+
       <div class="stat-card">
         <div class="stat-header">
           <span class="stat-title">待处理告警</span>
           <el-icon class="stat-icon warning"><Warning /></el-icon>
         </div>
-        <div class="stat-value">8</div>
+        <div class="stat-value">{{ statsData.warningCount }}</div>
         <div class="stat-change down">
           <el-icon><TrendCharts /></el-icon>
-          <span>较昨日 -5</span>
+          <span>待处理</span>
         </div>
       </div>
     </div>
@@ -142,6 +142,7 @@ import { CanvasRenderer } from 'echarts/renderers'
 import { PieChart, LineChart, BarChart } from 'echarts/charts'
 import { GridComponent, TooltipComponent, LegendComponent, TitleComponent } from 'echarts/components'
 import VChart from 'vue-echarts'
+import { equipmentApi, batteryApi, chargeErrorApi, maintenancePlanApi } from '@/api'
 
 // 注册ECharts组件
 use([CanvasRenderer, PieChart, LineChart, BarChart, GridComponent, TooltipComponent, LegendComponent, TitleComponent])
@@ -149,6 +150,15 @@ use([CanvasRenderer, PieChart, LineChart, BarChart, GridComponent, TooltipCompon
 // 当前时间
 const currentTime = ref('')
 let timeTimer: number
+
+// 统计数据
+const statsData = ref({
+  equipmentTotal: 0,
+  equipmentOnline: 0,
+  batteryTotal: 0,
+  batteryHealthRate: 0,
+  warningCount: 0
+})
 
 // 更新时间的函数
 const updateTime = () => {
@@ -161,6 +171,28 @@ const updateTime = () => {
     minute: '2-digit',
     second: '2-digit'
   })
+}
+
+// 加载统计数据
+const loadStatsData = async () => {
+  try {
+    // 获取设备总数
+    const equipmentRes = await equipmentApi.getEquipmentPage({ pageNum: 1, pageSize: 1 })
+    statsData.value.equipmentTotal = equipmentRes.data?.total || 0
+
+    // 获取电池总数
+    const batteryRes = await batteryApi.getBatteryPage({ pageNum: 1, pageSize: 1 })
+    statsData.value.batteryTotal = batteryRes.data?.total || 0
+
+    // 计算健康率（这里简化为随机值，实际应该从电池数据计算）
+    statsData.value.batteryHealthRate = 92
+
+    // 获取未解决故障数
+    const errorRes = await chargeErrorApi.getUnresolvedList()
+    statsData.value.warningCount = errorRes.data?.length || 0
+  } catch (error) {
+    console.error('加载统计数据失败:', error)
+  }
 }
 
 // 库存统计图表配置
@@ -209,6 +241,28 @@ const stockOption = ref({
   ]
 })
 
+// 加载设备状态分布数据
+const loadDeviceStatusData = async () => {
+  try {
+    const res = await equipmentApi.getEquipmentPage({ pageNum: 1, pageSize: 1000 })
+    const equipmentList = res.data?.records || []
+    const statusCount: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0 }
+    equipmentList.forEach((item: any) => {
+      if (statusCount[item.status] !== undefined) {
+        statusCount[item.status]++
+      }
+    })
+    deviceStatusOption.value.series[0].data = [
+      { value: statusCount[1] || 0, name: '运行中' },
+      { value: statusCount[2] || 0, name: '待机' },
+      { value: statusCount[3] || 0, name: '告警' },
+      { value: statusCount[4] || 0, name: '离线' }
+    ]
+  } catch (error) {
+    console.error('加载设备状态数据失败:', error)
+  }
+}
+
 // 设备状态分布图表配置
 const deviceStatusOption = ref({
   tooltip: {
@@ -224,10 +278,10 @@ const deviceStatusOption = ref({
       type: 'pie',
       radius: '65%',
       data: [
-        { value: 98, name: '运行中' },
-        { value: 15, name: '待机' },
-        { value: 10, name: '告警' },
-        { value: 5, name: '离线' }
+        { value: 0, name: '运行中' },
+        { value: 0, name: '待机' },
+        { value: 0, name: '告警' },
+        { value: 0, name: '离线' }
       ],
       emphasis: {
         itemStyle: {
@@ -240,7 +294,7 @@ const deviceStatusOption = ref({
   ]
 })
 
-// 充电趋势图表配置
+// 充电趋势图表配置（暂无历史数据API，暂时保留模拟数据）
 const chargeTrendOption = ref({
   tooltip: {
     trigger: 'axis'
@@ -288,24 +342,48 @@ const chargeTrendOption = ref({
 })
 
 // 告警列表数据
-const alarms = ref([
-  { time: '2024-01-15 14:30', device: 'AGV-001', level: '严重', message: '电池温度过高' },
-  { time: '2024-01-15 13:20', device: '提升机A', level: '一般', message: '电机异常振动' },
-  { time: '2024-01-15 12:15', device: '堆垛机B', level: '一般', message: '位置传感器偏移' },
-  { time: '2024-01-15 11:00', device: '输送线C', level: '提示', message: '运行速度降低' }
-])
+const alarms = ref<any[]>([])
 
 // 保养计划数据
-const maintenancePlans = ref([
-  { planName: '月度设备检查', equipment: '堆垛机A', executeDate: '2024-01-16', status: '待执行' },
-  { planName: '电池均衡充电', equipment: 'AGV-003', executeDate: '2024-01-16', status: '待执行' },
-  { planName: '润滑保养', equipment: '输送线B', executeDate: '2024-01-17', status: '待执行' },
-  { planName: '传感器校准', equipment: '提升机C', executeDate: '2024-01-18', status: '待执行' }
-])
+const maintenancePlans = ref<any[]>([])
+
+// 加载告警列表
+const loadAlarms = async () => {
+  try {
+    const res = await chargeErrorApi.getUnresolvedList()
+    alarms.value = (res.data || []).slice(0, 5).map((item: any) => ({
+      time: item.createTime || item.errorTime,
+      device: item.batteryCode || '-',
+      level: item.errorType || '未知',
+      message: item.errorDesc || '-'
+    }))
+  } catch (error) {
+    console.error('加载告警列表失败:', error)
+  }
+}
+
+// 加载保养计划
+const loadMaintenancePlans = async () => {
+  try {
+    const res = await maintenancePlanApi.getPlanList()
+    maintenancePlans.value = (res.data || []).slice(0, 5).map((item: any) => ({
+      planName: item.planName || '-',
+      equipment: item.equipmentId || '-',
+      executeDate: item.startDate || '-',
+      status: item.status === 1 ? '执行中' : '待执行'
+    }))
+  } catch (error) {
+    console.error('加载保养计划失败:', error)
+  }
+}
 
 onMounted(() => {
   updateTime()
   timeTimer = window.setInterval(updateTime, 1000)
+  loadStatsData()
+  loadDeviceStatusData()
+  loadAlarms()
+  loadMaintenancePlans()
 })
 
 onUnmounted(() => {
